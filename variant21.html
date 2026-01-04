@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ЕГЭ 14 — слитно / раздельно / дефис</title>
+
+<style>
+  html{
+    background-image:url("https://i.postimg.cc/s2KnPjz4/image1.jpg");
+    background-size:cover; background-position:center;
+    background-repeat:no-repeat; background-attachment:fixed;
+    height:100%;
+  }
+
+  body{
+    margin:0; min-height:100%;
+    font-family:'Segoe UI', Arial, sans-serif;
+    padding:30px; line-height:1.7;
+    color:#0f172a; background:transparent;
+    transition: background .3s ease, color .3s ease;
+    position:relative; z-index:0;
+  }
+
+  body::before{
+    content:"";
+    position:fixed;
+    left:0; right:0; top:0; bottom:0;
+    background:transparent;
+    pointer-events:none;
+    z-index:0;
+    opacity:0;
+    transition: opacity .3s ease;
+  }
+
+  body.dark{ color:#e5e7eb; }
+
+  body.dark::before{
+    top:70px;
+    bottom:70px;
+    left:0; right:0;
+    background: radial-gradient(circle at top,
+      rgba(67, 84, 122, 0.92),
+      rgba(3, 10, 41, 0.92) 70%
+    );
+    opacity:1;
+  }
+
+  .task{
+    background:linear-gradient(135deg, rgba(186,230,253,0.85), rgba(199,210,254,0.85), rgba(233,213,255,0.85));
+    backdrop-filter: blur(8px);
+    padding:28px;
+    border-radius:22px;
+    max-width:920px;
+    margin:auto;
+    box-shadow:0 25px 60px rgba(0,0,0,0.25);
+    border:2px solid rgba(147,197,253,0.6);
+    position:relative; z-index:1;
+  }
+
+  body.dark .task{
+    background:rgba(15,23,42,0.9);
+    border:1px solid rgba(148,163,184,0.25);
+    box-shadow:0 20px 40px rgba(0,0,0,0.6);
+  }
+
+  #themeToggle{
+    float:right;
+    margin-top:-10px;
+    margin-bottom:10px;
+  }
+
+  p{ margin:0 0 16px; }
+
+  select{
+    margin:0 6px;
+    padding:6px 12px;
+    font-size:14px;
+    border-radius:12px;
+    border:2px solid transparent;
+    background:
+      linear-gradient(#ffffff, #f0f6ff) padding-box,
+      linear-gradient(135deg, #60a5fa, #a78bfa) border-box;
+    box-shadow:
+      inset 0 1px 2px rgba(255,255,255,0.9),
+      0 4px 10px rgba(0,0,0,0.08);
+    color:#0f172a;
+  }
+
+  body.dark select{
+    background:
+      linear-gradient(#020617, #020617) padding-box,
+      linear-gradient(135deg, #38bdf8, #818cf8) border-box;
+    color:#e5e7eb;
+  }
+
+  body.dark select option{
+    background-color:#ffffff;
+    color:#0f172a;
+  }
+
+  select:disabled{
+    opacity:1 !important;
+    -webkit-text-fill-color: currentColor;
+    cursor:default;
+  }
+
+  button{
+    margin-top:22px;
+    padding:12px 24px;
+    font-size:16px;
+    cursor:pointer;
+    border-radius:14px;
+    border:none;
+    font-weight:600;
+    background:linear-gradient(135deg, #0ea5e9, #6366f1);
+    color:#fff;
+    box-shadow:0 10px 22px rgba(0,0,0,0.25);
+  }
+
+  .result{
+    margin-top:18px;
+    font-size:20px;
+    font-weight:700;
+    padding:14px 20px;
+    border-radius:16px;
+    background:linear-gradient(135deg, #ecfeff, #ede9fe);
+    border:2px solid #c7d2fe;
+    color:#312e81;
+    display:inline-block;
+  }
+
+  body.dark .result{
+    background:linear-gradient(135deg, #020617, #1e293b);
+    border-color:#334155;
+    color:#e5e7eb;
+  }
+
+  .actions{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+</style>
+</head>
+
+<body>
+<div class="task">
+  <button id="themeToggle" onclick="toggleTheme()">🌙 ТЁМНАЯ ТЕМА</button>
+
+  <div id="exercise"></div>
+
+  <div class="actions">
+    <button onclick="checkAnswers()">ПРОВЕРИТЬ</button>
+    <button onclick="resetExercise()">НАЧАТЬ</button>
+  </div>
+
+  <div class="result" id="result"></div>
+</div>
+
+<script>
+const RAW = `
+1. Дома у него такие рабочие орудия, с которыми он никогда не имел надобности церемониться, (ПО)ЭТОМУ <с>  и вытирать их (ДО)СУХА <с>  привычки не приобрёл.
+2. Но она стояла неподвижно, раскрывши глазки, в которых КАК(БУДТО) <р> застыли две слезинки, появившиеся ещё (В)НАЧАЛЕ <р> семейной сцены.
+3. (ПО)ЭТОМУ <р> случаю она позвала на совет даже старосту Федота, ЧТО(БЫ) <с>  заручиться его поддержкой.
+4. Гуманный порыв соскочил с него ТАК(ЖЕ) <р> быстро, как и налетел; хорошие и жалобные слова ТО(ЖЕ) <с>  уже не имели смысла.
+5. (С)НАЧАЛА <с> тихо, потом быстрее, а (ЗА)ТЕМ <с>, доехав до конца улицы, — вдруг нахлестал лошадь и пустился в карьер.
+
+`.trim();
+
+function makeSelect(answer){
+  return `\n<select data-answer="${answer}">\n<option value="">—</option>\n<option value="с">слитно</option>\n<option value="р">раздельно</option>\n<option value="д">дефис</option>\n</select>`;
+}
+
+function renderExercise(){
+  const lines = RAW.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  const html = lines.map(line => {
+    const converted = line.replace(/(\S+)\s*<([срд])>/g, (_, token, ans) => `${token} ${makeSelect(ans)}`);
+    return `<p>${converted}</p>`;
+  }).join('');
+  document.getElementById('exercise').innerHTML = html;
+}
+
+renderExercise();
+
+const selects = () => document.querySelectorAll('select');
+window.onload = () => selects().forEach(s => s.disabled = true);
+
+function resetExercise(){
+  selects().forEach(s => { s.value = ''; s.disabled = false; });
+  document.getElementById('result').textContent = '';
+}
+
+function checkAnswers(){
+  let correct = 0, errors = 0;
+  selects().forEach(s => s.value === s.dataset.answer ? correct++ : errors++);
+  document.getElementById('result').textContent = errors === 0 ? 'ВСЁ ВЕРНО' : `ВЕРНО: ${correct}, ОШИБОК: ${errors}`;
+  selects().forEach(s => s.disabled = true);
+}
+
+function toggleTheme(){
+  document.body.classList.toggle('dark');
+  document.getElementById('themeToggle').textContent = document.body.classList.contains('dark') ? '☀️ СВЕТЛАЯ ТЕМА' : '🌙 ТЁМНАЯ ТЕМА';
+}
+</script>
+</body>
+</html>
